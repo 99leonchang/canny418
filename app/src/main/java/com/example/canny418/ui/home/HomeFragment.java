@@ -3,6 +3,7 @@ package com.example.canny418.ui.home;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,7 +23,19 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.example.canny418.BlobActivity;
 import com.example.canny418.R;
+
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 public class HomeFragment extends Fragment {
 
@@ -58,6 +72,52 @@ public class HomeFragment extends Fragment {
         return root;
     }
 
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(getActivity()) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
+                    Log.i("CANNY", "OpenCV loaded successfully");
+//                    mOpenCvCameraView.enableView();
+//                    mOpenCvCameraView.setOnTouchListener(BlobActivity.this);
+                }
+                break;
+                default: {
+                    super.onManagerConnected(status);
+                }
+                break;
+            }
+        }
+    };
+
+    private Bitmap detectEdges(Bitmap bitmap, int threshold1, int threshold2) {
+        // Convert bitmap to matrix
+        Mat rgba = new Mat();
+        Utils.bitmapToMat(bitmap, rgba);
+
+        Mat edges = new Mat(rgba.size(), CvType.CV_8UC1);
+        Imgproc.cvtColor(rgba, edges, Imgproc.COLOR_RGB2GRAY, 4);
+        Imgproc.Canny(edges, edges, threshold1, threshold2);
+
+        Bitmap ret = bitmap.copy(bitmap.getConfig(), true);
+        Utils.matToBitmap(edges, ret);
+
+        return ret;
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!OpenCVLoader.initDebug()) {
+            Log.d("CANNY", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, getActivity(), mLoaderCallback);
+        } else {
+            Log.d("CANNY", "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -77,8 +137,29 @@ public class HomeFragment extends Fragment {
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
 
-            ImageView imageView = (ImageView) getActivity().findViewById(R.id.imgView);
-            imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+            Log.d("CANNY", "ImagePath " + picturePath);
+
+            ImageView img1 = (ImageView) getActivity().findViewById(R.id.img1);
+            ImageView img2 = (ImageView) getActivity().findViewById(R.id.img2);
+            InputStream stream = null;
+            try {
+                stream = getActivity().getContentResolver().openInputStream(selectedImage);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            EditText t1 = (EditText) getActivity().findViewById(R.id.threshOne);
+            EditText t2 = (EditText) getActivity().findViewById(R.id.threshTwo);
+
+            int threshold1 = Integer.parseInt(t1.getText().toString());
+            int threshold2 = Integer.parseInt(t2.getText().toString());
+            Bitmap bitmap = BitmapFactory.decodeStream(stream);
+            img1.setImageBitmap(bitmap);
+            Bitmap edgeBitmap = detectEdges(bitmap, threshold1, threshold2);
+
+            img2.setImageBitmap(edgeBitmap);
+//            imageView.setImageURI(selectedImage);
+//            imageView.setImageDrawable(BitmapFactory.decodeFile(picturePath));
 
         }
 
