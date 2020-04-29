@@ -6,6 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.home.HomeFragment">
 
+
+
     <TextView
         android:id="@+id/text_home"
         android:layout_width="match_parent"
@@ -17,8 +19,10 @@
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.564" />
 
     <Button
         android:id="@+id/button_load_picture"
@@ -58,6 +62,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.126" />
 
+    <EditText
+        android:id="@+id/iterations"
+        android:layout_width="91dp"
+        android:layout_height="45dp"
+        android:ems="10"
+        android:inputType="number"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.831"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.125" />
+
+
     <ImageView
         android:id="@+id/img1"
         android:layout_width="317dp"
@@ -66,7 +84,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.282"
+        app:layout_constraintVertical_bias="0.344"
         tools:src="@tools:sample/backgrounds/scenic" />
 
     <ImageView
@@ -77,6 +95,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.745"
+        app:layout_constraintVertical_bias="0.837"
         tools:src="@tools:sample/backgrounds/scenic" />
+
+    <TextView
+        android:id="@+id/avgMilliSeconds"
+        android:layout_width="150dp"
+        android:layout_height="11dp"
+        android:text="Result"
+        tools:layout_editor_absoluteX="47dp"
+        tools:layout_editor_absoluteY="684dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
