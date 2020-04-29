@@ -23,7 +23,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.example.canny418.BlobActivity;
 import com.example.canny418.R;
 
 import org.opencv.android.BaseLoaderCallback;
@@ -90,19 +89,29 @@ public class HomeFragment extends Fragment {
         }
     };
 
-    private Bitmap detectEdges(Bitmap bitmap, int threshold1, int threshold2) {
-        // Convert bitmap to matrix
-        Mat rgba = new Mat();
-        Utils.bitmapToMat(bitmap, rgba);
+    private CannyResult detectEdges(Bitmap bitmap, int threshold1, int threshold2, int iter) {
+        long prevTime = System.currentTimeMillis();
+        Bitmap ret = null;
+        for(int i = 0; i < iter; i++) {
+            // Convert bitmap to matrix
+            Mat rgba = new Mat();
+            Utils.bitmapToMat(bitmap, rgba);
 
-        Mat edges = new Mat(rgba.size(), CvType.CV_8UC1);
-        Imgproc.cvtColor(rgba, edges, Imgproc.COLOR_RGB2GRAY, 4);
-        Imgproc.Canny(edges, edges, threshold1, threshold2);
+            Mat edges = new Mat(rgba.size(), CvType.CV_8UC1);
+            Imgproc.cvtColor(rgba, edges, Imgproc.COLOR_RGB2GRAY, 4);
+            Imgproc.Canny(edges, edges, threshold1, threshold2);
 
-        Bitmap ret = bitmap.copy(bitmap.getConfig(), true);
-        Utils.matToBitmap(edges, ret);
+            ret = bitmap.copy(bitmap.getConfig(), true);
+            Utils.matToBitmap(edges, ret);
+        }
+        long currTime = System.currentTimeMillis();
 
-        return ret;
+        CannyResult cannyResult = new CannyResult();
+        cannyResult.bitmap = ret;
+        cannyResult.avgMilliSeconds = (currTime - prevTime)/iter;
+        cannyResult.iter = iter;
+
+        return cannyResult;
     }
 
 
@@ -150,14 +159,21 @@ public class HomeFragment extends Fragment {
 
             EditText t1 = (EditText) getActivity().findViewById(R.id.threshOne);
             EditText t2 = (EditText) getActivity().findViewById(R.id.threshTwo);
+            EditText t3 = (EditText) getActivity().findViewById(R.id.iterations);
 
             int threshold1 = Integer.parseInt(t1.getText().toString());
             int threshold2 = Integer.parseInt(t2.getText().toString());
+            int iter = Integer.parseInt(t3.getText().toString());
             Bitmap bitmap = BitmapFactory.decodeStream(stream);
             img1.setImageBitmap(bitmap);
-            Bitmap edgeBitmap = detectEdges(bitmap, threshold1, threshold2);
 
-            img2.setImageBitmap(edgeBitmap);
+            // canny edge detection
+            CannyResult cannyResult = detectEdges(bitmap, threshold1, threshold2, iter);
+
+            TextView result = (TextView) getActivity().findViewById(R.id.avgMilliSeconds);
+            result.setText("" + cannyResult.avgMilliSeconds);
+
+            img2.setImageBitmap(cannyResult.bitmap);
 //            imageView.setImageURI(selectedImage);
 //            imageView.setImageDrawable(BitmapFactory.decodeFile(picturePath));
 
