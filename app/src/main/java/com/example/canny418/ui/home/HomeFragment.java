@@ -90,25 +90,32 @@ public class HomeFragment extends Fragment {
     };
 
     private CannyResult detectEdges(Bitmap bitmap, int threshold1, int threshold2, int iter) {
-        long prevTime = System.currentTimeMillis();
+        long prevTime, currTime;
+        long totalTime = 0;
         Bitmap ret = null;
-        for(int i = 0; i < iter; i++) {
-            // Convert bitmap to matrix
-            Mat rgba = new Mat();
-            Utils.bitmapToMat(bitmap, rgba);
 
+        // Convert bitmap to matrix
+        Mat rgba = new Mat();
+        Utils.bitmapToMat(bitmap, rgba);
+
+        for(int i = 0; i < iter; i++) {
             Mat edges = new Mat(rgba.size(), CvType.CV_8UC1);
             Imgproc.cvtColor(rgba, edges, Imgproc.COLOR_RGB2GRAY, 4);
+            prevTime = System.nanoTime();
             Imgproc.Canny(edges, edges, threshold1, threshold2);
+            currTime = System.nanoTime();
+            totalTime += currTime-prevTime;
 
             ret = bitmap.copy(bitmap.getConfig(), true);
             Utils.matToBitmap(edges, ret);
         }
-        long currTime = System.currentTimeMillis();
 
         CannyResult cannyResult = new CannyResult();
         cannyResult.bitmap = ret;
-        cannyResult.avgMilliSeconds = (currTime - prevTime)/iter;
+        cannyResult.avgMilliSeconds = (totalTime)/iter;
+        cannyResult.totalMilliSeconds = (totalTime);
+        Log.d("CANNY", "Total " + cannyResult.totalMilliSeconds);
+
         cannyResult.iter = iter;
 
         return cannyResult;
@@ -171,6 +178,7 @@ public class HomeFragment extends Fragment {
             CannyResult cannyResult = detectEdges(bitmap, threshold1, threshold2, iter);
 
             TextView result = (TextView) getActivity().findViewById(R.id.avgMilliSeconds);
+            Log.d("CANNY", "Avg " + cannyResult.avgMilliSeconds);
             result.setText("" + cannyResult.avgMilliSeconds);
 
             img2.setImageBitmap(cannyResult.bitmap);

@@ -6,4 +6,5 @@ public class CannyResult {
     Bitmap bitmap;
     long avgMilliSeconds;
     int iter;
+    long totalMilliSeconds;
 }
