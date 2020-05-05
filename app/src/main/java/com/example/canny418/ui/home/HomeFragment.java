@@ -77,8 +77,6 @@ public class HomeFragment extends Fragment {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
                     Log.i("CANNY", "OpenCV loaded successfully");
-//                    mOpenCvCameraView.enableView();
-//                    mOpenCvCameraView.setOnTouchListener(BlobActivity.this);
                 }
                 break;
                 default: {
