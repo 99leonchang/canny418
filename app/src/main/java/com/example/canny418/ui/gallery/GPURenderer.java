@@ -387,6 +387,8 @@ public class GPURenderer implements GLSurfaceView.Renderer
 
         mmWidth = 640;
         mmHeight = 480;
+
+        GLES20.glGenFramebuffers( 2, mFrameBuffer, 0);
     }
 
     @Override
@@ -413,14 +415,19 @@ public class GPURenderer implements GLSurfaceView.Renderer
     @Override
     public void onDrawFrame(GL10 glUnused)
     {
-//        long prevTime = System.nanoTime();
+        long prevTime = System.nanoTime();
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-
         drawCube();
-//        long currTime = System.nanoTime();
-//        long totalTime = currTime-prevTime;
-//        Log.d("CANNY", "time: "+totalTime);
+
+        long currTime = System.nanoTime();
+        counter += currTime-prevTime;
+        num_iter++;
+        if(num_iter == 1000){
+            Log.d("CANNY", "time: "+counter/num_iter);
+            num_iter = 0;
+            counter = 0;
+        }
     }
 
     private void initPrograms() {
@@ -553,7 +560,7 @@ public class GPURenderer implements GLSurfaceView.Renderer
      * Draws a cube.
      */
     private void drawCube() {
-        GLES20.glGenFramebuffers( 2, mFrameBuffer, 0);
+
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
         GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mTexture1, 0);
@@ -575,59 +582,53 @@ public class GPURenderer implements GLSurfaceView.Renderer
 
 
         // ==== GAUSS ==== //
-//        // Set our per-vertex lighting program.
-//        GLES20.glUseProgram(mGaussProgram);
-//
-//        // FBO 0
-//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]); // w -> mTexture1
-////        GLES20.glViewport(0, 0, 1000, 1000);
-//
-//        // Set program handles for cube drawing.
-//        mTextureUniformHandle = GLES20.glGetUniformLocation(mGaussProgram,
-//                "u_Texture");
-//        mPixelStepHandle = GLES20.glGetUniformLocation(mGaussProgram,
-//                "pixelStep");
-//
-//        // Set the active texture1 unit to texture unit 1.
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE2); // r -> mTexture2
-//
-////        // Bind the image texture to this unit.
-////        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture2); //ALREADY BOUND??
-//
-//        // Tell the texture uniform sampler to use this texture in the shader by
-//        // binding to texture unit 0.
-//        GLES20.glUniform1i(mTextureUniformHandle, 2);
-//
-//
-//        // Horizontal Gaussian
-//        mPixelStep[0] = (float)(1.0/640);
-//        mPixelStep[1] = 0;
-//
-//        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
-//
-//        // Draw the cube.
-//        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-//
-//        // Vertical Gaussian
-//        mPixelStep[0] = 0;
-//        mPixelStep[1] = (float)(1.0/480);
-//
-//        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
-//
-//        // Draw the cube.
-//        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-//
-//
-//        Log.d("CANNY", "glGetError: "+GLES20.glGetError());
+        // Set our per-vertex lighting program.
+        GLES20.glUseProgram(mGaussProgram);
+
+        // FBO 0
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]); // w -> mTexture1
+//        GLES20.glViewport(0, 0, 1000, 1000);
+
+        // Set program handles for cube drawing.
+        mTextureUniformHandle = GLES20.glGetUniformLocation(mGaussProgram,
+                "u_Texture");
+        mPixelStepHandle = GLES20.glGetUniformLocation(mGaussProgram,
+                "pixelStep");
+
+        // Set the active texture1 unit to texture unit 1.
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE2); // r -> mTexture2
+
+        // Tell the texture uniform sampler to use this texture in the shader by
+        // binding to texture unit 0.
+        GLES20.glUniform1i(mTextureUniformHandle, 2);
+
+
+        // Horizontal Gaussian
+        mPixelStep[0] = (float)(1.0/mmWidth);
+        mPixelStep[1] = 0;
+
+        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
+
+        // Draw the cube.
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+
+        // Vertical Gaussian
+        mPixelStep[0] = 0;
+        mPixelStep[1] = (float)(1.0/mmHeight);
+
+        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
+
+        // Draw the cube.
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+
 
         // ==== SOBEL ==== //
-        long prevTime = System.nanoTime();
+
         // Set our per-vertex lighting program.
         GLES20.glUseProgram(mSobelProgram);
 
         // FBO 1
-//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[1]);
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[1]);
 //        GLES20.glViewport(0, 0, mmWidth, mmHeight);
 
 
@@ -640,14 +641,14 @@ public class GPURenderer implements GLSurfaceView.Renderer
                 "tex_size");
 
         // Set the active texture1 unit to texture unit 1.
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
 
 //        // Bind previous texture to this unit.
 //        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture1); //ALREADY BOUND?
 
         // Tell the texture uniform sampler to use this texture in the shader by
         // binding to texture unit 0.
-        GLES20.glUniform1i(mTextureUniformHandle, 2);
+        GLES20.glUniform1i(mTextureUniformHandle, 1);
 
         mPixelStep[0] = (float)(1.0/mmWidth);
         mPixelStep[1] = (float)(1.0/mmHeight);
@@ -662,97 +663,65 @@ public class GPURenderer implements GLSurfaceView.Renderer
         // Draw the cube.
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
 
-        long currTime = System.nanoTime();
-        counter += currTime-prevTime;
-        num_iter++;
-        if(num_iter == 1000){
-            Log.d("CANNY", "time: "+counter/num_iter);
-            num_iter = 0;
-        }
+        // ==== NMS ==== //
 
-//
-//        // ==== NMS ==== //
-//
-//        // Set our per-vertex lighting program.
-//        GLES20.glUseProgram(mNMSProgram);
-//
-//        // FBO 0
-//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-//
-//        // Set program handles for cube drawing.
-//        mTextureUniformHandle = GLES20.glGetUniformLocation(mNMSProgram,
-//                "u_Texture");
-//        mPixelStepHandle = GLES20.glGetUniformLocation(mNMSProgram,
-//                "pixelStep");
-//
-//        // Set the active texture1 unit to texture unit 1.
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
-//
-////        mNMSTexture = TextureHelper.loadTexture(mActivityContext);
-//
-//////        // Bind previous texture to this unit.
-////        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture3);
-//
-//        // Tell the texture uniform sampler to use this texture in the shader by
-//        // binding to texture unit 0.
-//        GLES20.glUniform1i(mTextureUniformHandle, 2);
-//
-//        // Unbind
-////        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-////        GLES20.glGenFramebuffers( 1, mFrameBuffer);
-//        // Bind FrameBuffer
-////        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer.get(0));
-////        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mNMSTexture, 0);
-//
-//
-//        mPixelStep[0] = (float)(1.0/640);
-//        mPixelStep[1] = (float)(1.0/480);
-//
-//        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
-//
-//        // Draw the cube.
-//        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
-//
-//        // ==== WEAK PIXEL ==== //
-//
-//        // Set our per-vertex lighting program.
-//        GLES20.glUseProgram(mWeakPixelProgram);
-//
-//        // FBO Default
-//        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-//
-//        // Set program handles for cube drawing.
-//        mTextureUniformHandle = GLES20.glGetUniformLocation(mWeakPixelProgram,
-//                "u_Texture");
-//        mPixelStepHandle = GLES20.glGetUniformLocation(mWeakPixelProgram,
-//                "pixelStep");
-//
-//        // Set the active texture1 unit to texture unit 1.
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE3);
-//
-////        mNMSTexture = TextureHelper.loadTexture(mActivityContext);
-//
-////        // Bind previous texture to this unit.
-//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture2);
-//
-//        // Tell the texture uniform sampler to use this texture in the shader by
-//        // binding to texture unit 0.
-//        GLES20.glUniform1i(mTextureUniformHandle, 3);
-//
-//        // Unbind
-////        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-////        GLES20.glGenFramebuffers( 1, mFrameBuffer);
-//        // Bind FrameBuffer
-////        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer.get(0));
-////        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mNMSTexture, 0);
-//
-//
-//        mPixelStep[0] = (float)(1.0/640);
-//        mPixelStep[1] = (float)(1.0/480);
-//
-//        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
-//
-//        // Draw the cube.
-//        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+        // Set our per-vertex lighting program.
+        GLES20.glUseProgram(mNMSProgram);
+
+        // FBO 0
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer[0]);
+
+        // Set program handles for cube drawing.
+        mTextureUniformHandle = GLES20.glGetUniformLocation(mNMSProgram,
+                "u_Texture");
+        mPixelStepHandle = GLES20.glGetUniformLocation(mNMSProgram,
+                "pixelStep");
+
+        // Set the active texture1 unit to texture unit 1.
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
+
+
+        // Tell the texture uniform sampler to use this texture in the shader by
+        // binding to texture unit 0.
+        GLES20.glUniform1i(mTextureUniformHandle, 2);
+
+
+        mPixelStep[0] = (float)(1.0/mmWidth);
+        mPixelStep[1] = (float)(1.0/mmHeight);
+
+        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
+
+        // Draw the cube.
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+
+        // ==== WEAK PIXEL ==== //
+
+        // Set our per-vertex lighting program.
+        GLES20.glUseProgram(mWeakPixelProgram);
+
+        // FBO Default
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
+        // Set program handles for cube drawing.
+        mTextureUniformHandle = GLES20.glGetUniformLocation(mWeakPixelProgram,
+                "u_Texture");
+        mPixelStepHandle = GLES20.glGetUniformLocation(mWeakPixelProgram,
+                "pixelStep");
+
+        // Set the active texture1 unit to texture unit 1.
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+
+
+        // Tell the texture uniform sampler to use this texture in the shader by
+        // binding to texture unit 0.
+        GLES20.glUniform1i(mTextureUniformHandle, 1);
+
+        mPixelStep[0] = (float)(1.0/mmWidth);
+        mPixelStep[1] = (float)(1.0/mmHeight);
+
+        GLES20.glUniform2fv(mPixelStepHandle, 1, mPixelStep, 0);
+
+        // Draw the cube.
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
     }
 }
