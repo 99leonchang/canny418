@@ -1,4 +1,4 @@
-package com.example.canny418.ui.gallery;
+package com.example.canny418.ui.slideshow;
 import android.app.Activity;
 import android.content.ContentProviderOperation;
 import android.content.Intent;

@@ -17,6 +17,8 @@
         android:name="android.hardware.camera.front.autofocus"
         android:required="false" />
 
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -36,7 +38,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.gallery.RealTimeActivity"
+            android:name=".ui.slideshow.RealTimeActivity"
             android:label="RealTimeActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>

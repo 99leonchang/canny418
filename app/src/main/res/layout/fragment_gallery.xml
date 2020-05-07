@@ -6,6 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".ui.gallery.GalleryFragment">
 
+    <android.opengl.GLSurfaceView
+        android:id="@+id/mGLSurfaceView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.23" />
+
     <TextView
         android:id="@+id/text_gallery"
         android:layout_width="match_parent"
